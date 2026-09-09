@@ -41,7 +41,8 @@ class PortfolioTest extends TestCase
             ->assertSee('poke me')
             ->assertSee('Minimize character')
             ->assertSee('Pause slideshow')
-            ->assertSee('Bake by Mel');
+            ->assertSee('Bake by Mel')
+            ->assertSee('Currently unavailable online');
     }
 
     public function test_project_pages_resolve_by_slug(): void
@@ -50,16 +51,23 @@ class PortfolioTest extends TestCase
         $this->get('/projects/xcellorate')
             ->assertOk()
             ->assertSee('Xcellorate')
+            ->assertSee('Currently unavailable online')
+            ->assertSee('expired server and domain subscription')
             ->assertSee('The problem')
             ->assertSee('Next project');
+        $this->get('/projects/bondacare')
+            ->assertOk()
+            ->assertSee('Currently unavailable online');
         $this->get('/projects/fixease')
             ->assertOk()
             ->assertSee('FixEase')
             ->assertSee('React Native')
-            ->assertSee('max-w-[18rem]');
+            ->assertSee('max-w-[18rem]')
+            ->assertDontSee('expired server and domain subscription');
         $this->get('/projects/bake-by-mel')
             ->assertOk()
             ->assertSee('Bake by Mel')
+            ->assertSee('Currently unavailable online')
             ->assertSee('max-w-[18rem]');
         $this->get('/projects/nadidakwah')->assertNotFound();
     }
@@ -272,6 +280,7 @@ class PortfolioTest extends TestCase
             ->assertDontSee('Challenges')
             ->assertDontSee('Overview')
             ->assertDontSee('Live site')
+            ->assertDontSee('Currently unavailable online')
             ->assertDontSee('Walkthrough')
             ->assertDontSee('Screens');
     }
@@ -320,5 +329,27 @@ class PortfolioTest extends TestCase
             ->assertSee('A full-width overview of the product and why it exists.')
             ->assertSee('Overview')
             ->assertSee('Stack');
+    }
+
+    public function test_admin_can_mark_a_project_as_currently_unavailable_online(): void
+    {
+        $user = User::query()->first();
+
+        $this->actingAs($user)->post('/admin/projects', [
+            'title' => 'Offline Site',
+            'sort_order' => 23,
+            'published' => '1',
+            'live_unavailable' => '1',
+        ])->assertRedirect(route('admin.projects.index'));
+
+        $this->assertDatabaseHas('projects', [
+            'slug' => 'offline-site',
+            'live_unavailable' => true,
+        ]);
+
+        $this->get('/projects/offline-site')
+            ->assertOk()
+            ->assertSee('Currently unavailable online')
+            ->assertSee('expired server and domain subscription');
     }
 }

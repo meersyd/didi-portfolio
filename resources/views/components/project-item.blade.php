@@ -16,6 +16,7 @@
             <p class="label-meta mb-2">{{ $project->category }}</p>
         @endif
         <h3 class="text-3xl font-bold tracking-tight sm:text-4xl">{{ $project->title }}</h3>
+        <x-offline-note :project="$project" compact />
         @if (filled($project->short_description))
             <p class="mt-3 max-w-xl text-[0.95rem] leading-relaxed text-subtle">
                 {{ $project->short_description }}

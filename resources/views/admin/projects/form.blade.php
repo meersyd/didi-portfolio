@@ -104,6 +104,11 @@
             <input class="field" name="live_url" value="{{ old('live_url', $project->live_url) }}">
             <span class="text-xs text-muted">Leave empty if the live site is down — the button stays hidden.</span>
         </label>
+        <label class="flex items-center gap-2 text-sm">
+            <input type="checkbox" name="live_unavailable" value="1" @checked(old('live_unavailable', $project->live_unavailable))>
+            Currently unavailable online
+        </label>
+        <p class="text-xs text-muted -mt-2">Shows a recruiter note on website projects whose server or domain has expired.</p>
         <label class="grid gap-2 text-sm">
             <span class="label-meta">Sort order</span>
             <input class="field" type="number" min="0" name="sort_order" value="{{ old('sort_order', $project->sort_order ?? 0) }}" required>

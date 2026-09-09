@@ -26,6 +26,7 @@ class ProjectRequest extends FormRequest
         $this->merge(array_merge($nullable, [
             'featured' => $this->boolean('featured'),
             'published' => $this->boolean('published'),
+            'live_unavailable' => $this->boolean('live_unavailable'),
             'technologies' => TextList::from($this->input('technologies')),
             'features' => TextList::fromLines($this->input('features')),
             'gallery' => TextList::fromLines($this->input('gallery')),
@@ -66,6 +67,7 @@ class ProjectRequest extends FormRequest
             'video_url' => ['nullable', 'string', 'max:500'],
             'github_url' => ['nullable', 'url', 'max:255'],
             'live_url' => ['nullable', 'url', 'max:255'],
+            'live_unavailable' => ['boolean'],
             'featured' => ['boolean'],
             'published' => ['boolean'],
             'sort_order' => ['required', 'integer', 'min:0'],

@@ -27,6 +27,7 @@ use Illuminate\Support\Str;
     'video_url',
     'github_url',
     'live_url',
+    'live_unavailable',
     'featured',
     'published',
     'sort_order',
@@ -50,6 +51,7 @@ class Project extends Model
             'gallery' => 'array',
             'featured' => 'boolean',
             'published' => 'boolean',
+            'live_unavailable' => 'boolean',
         ];
     }
 

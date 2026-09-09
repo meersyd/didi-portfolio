@@ -18,6 +18,8 @@
                 <p class="mt-3 font-mono text-xs tracking-wide text-muted">{{ $project->category }}</p>
             @endif
 
+            <x-offline-note :project="$project" class="mt-8 max-w-2xl" />
+
             @if ($project->hasValue('hero_image'))
                 <div class="mt-10 {{ $project->isCompactPreview() ? 'flex justify-center' : '' }}">
                     <img
@@ -31,9 +33,9 @@
 
             <x-project-video :embed="$project->videoEmbed()" />
 
-            @if ($project->hasValue('github_url') || $project->hasValue('live_url'))
+            @if ($project->hasValue('github_url') || ($project->hasValue('live_url') && ! $project->live_unavailable))
                 <div class="mt-8 flex flex-wrap gap-3">
-                    @if ($project->hasValue('live_url'))
+                    @if ($project->hasValue('live_url') && ! $project->live_unavailable)
                         <x-button href="{{ $project->live_url }}" external>Live site</x-button>
                     @endif
                     @if ($project->hasValue('github_url'))

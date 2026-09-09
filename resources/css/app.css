@@ -367,6 +367,30 @@
         margin-inline: auto;
     }
 
+    .project-offline-flag {
+        margin-top: 0.55rem;
+        font-family: var(--font-pixel), var(--font-mono);
+        font-size: 0.72rem;
+        font-weight: 600;
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+        color: var(--ink);
+    }
+
+    .project-offline-note {
+        border: 2px solid var(--ink);
+        background: var(--surface);
+        box-shadow: 4px 4px 0 var(--ink);
+        padding: 1rem 1.15rem;
+    }
+
+    .project-offline-note p:last-child {
+        margin-top: 0.55rem;
+        font-size: 0.95rem;
+        line-height: 1.65;
+        color: var(--subtle);
+    }
+
     .project-video {
         position: relative;
         width: 100%;
