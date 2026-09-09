@@ -1,6 +1,7 @@
 *.log
 .DS_Store
 .agents
+.render-admin
 .env
 .env.backup
 .env.production

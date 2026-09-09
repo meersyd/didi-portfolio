@@ -15,6 +15,16 @@ export DB_URL="${DB_URL:-${DATABASE_URL:-}}"
 export APP_URL="${APP_URL:-${RENDER_EXTERNAL_URL:-http://localhost}}"
 export ASSET_URL="${ASSET_URL:-$APP_URL}"
 
+if [ -z "${APP_KEY:-}" ]; then
+  echo "APP_KEY is not set. Add it in the Render Dashboard from: php artisan key:generate --show" >&2
+  exit 1
+fi
+
+if [ -z "${DB_URL}" ]; then
+  echo "DATABASE_URL / DB_URL is not set. Link Internal Database URL from didi-portfolio-db." >&2
+  exit 1
+fi
+
 php artisan package:discover --ansi --no-interaction
 php artisan config:cache --no-interaction
 php artisan route:cache --no-interaction

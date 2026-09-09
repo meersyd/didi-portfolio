@@ -3,7 +3,7 @@
 FROM node:22-alpine AS assets
 WORKDIR /app
 COPY package.json package-lock.json ./
-RUN npm ci
+RUN npm install
 COPY vite.config.js ./
 COPY resources ./resources
 COPY public ./public
