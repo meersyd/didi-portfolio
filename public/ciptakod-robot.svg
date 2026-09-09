@@ -1,0 +1,66 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" role="img" aria-label="ciptakod mascot">
+  <!--
+    Minecraft-style chubby Snorlax lookalike
+    Brand cyan body + cream belly + dark feet/ears
+  -->
+
+  <!-- soft shadow -->
+  <ellipse cx="60" cy="114" rx="34" ry="4" fill="#0F172A" opacity="0.12"/>
+
+  <!-- feet (tiny, poking out) -->
+  <rect x="28" y="100" width="18" height="10" fill="#1E293B"/>
+  <rect x="30" y="102" width="4" height="4" fill="#2db8d6"/>
+  <rect x="36" y="102" width="4" height="4" fill="#2db8d6"/>
+  <rect x="42" y="102" width="4" height="4" fill="#64748B"/>
+
+  <rect x="74" y="100" width="18" height="10" fill="#1E293B"/>
+  <rect x="76" y="102" width="4" height="4" fill="#2db8d6"/>
+  <rect x="82" y="102" width="4" height="4" fill="#2db8d6"/>
+  <rect x="88" y="102" width="4" height="4" fill="#64748B"/>
+
+  <!-- left arm (stubby block) -->
+  <rect x="8" y="58" width="18" height="28" fill="#1FA9C7"/>
+  <rect x="8" y="58" width="5" height="28" fill="#178AA3"/>
+  <rect x="8" y="80" width="18" height="8" fill="#0F172A"/>
+
+  <!-- right arm -->
+  <rect x="94" y="58" width="18" height="28" fill="#1FA9C7"/>
+  <rect x="107" y="58" width="5" height="28" fill="#5ECCE3"/>
+  <rect x="94" y="80" width="18" height="8" fill="#0F172A"/>
+
+  <!-- BODY — big fat cube -->
+  <rect x="22" y="36" width="76" height="68" fill="#2db8d6"/>
+  <!-- side shading -->
+  <rect x="22" y="36" width="10" height="68" fill="#1A9BB8"/>
+  <rect x="88" y="36" width="10" height="68" fill="#5ECCE3" opacity="0.45"/>
+  <rect x="22" y="36" width="76" height="8" fill="#7AD4E8" opacity="0.35"/>
+
+  <!-- cream belly oval-ish block -->
+  <rect x="36" y="56" width="48" height="40" fill="#F8FAFC"/>
+  <rect x="40" y="60" width="40" height="32" fill="#E2E8F0"/>
+  <!-- belly highlight -->
+  <rect x="44" y="64" width="12" height="20" fill="#F8FAFC"/>
+
+  <!-- ears (small pointed blocks on head) -->
+  <rect x="30" y="20" width="14" height="18" fill="#1A9BB8"/>
+  <rect x="32" y="22" width="10" height="10" fill="#0F172A"/>
+  <rect x="76" y="20" width="14" height="18" fill="#1A9BB8"/>
+  <rect x="78" y="22" width="10" height="10" fill="#0F172A"/>
+
+  <!-- head top (same mass as body — snorlax vibe) -->
+  <!-- sleepy cute eyes -->
+  <rect x="40" y="44" width="12" height="8" fill="#0F172A"/>
+  <rect x="68" y="44" width="12" height="8" fill="#0F172A"/>
+  <!-- eye shine -->
+  <rect x="42" y="46" width="3" height="3" fill="#FFFFFF"/>
+  <rect x="70" y="46" width="3" height="3" fill="#FFFFFF"/>
+
+  <!-- tiny smile -->
+  <rect x="54" y="54" width="4" height="3" fill="#0F172A"/>
+  <rect x="58" y="56" width="8" height="3" fill="#0F172A"/>
+  <rect x="66" y="54" width="4" height="3" fill="#0F172A"/>
+
+  <!-- blush pixels -->
+  <rect x="34" y="52" width="6" height="4" fill="#FB7185" opacity="0.45"/>
+  <rect x="80" y="52" width="6" height="4" fill="#FB7185" opacity="0.45"/>
+</svg>

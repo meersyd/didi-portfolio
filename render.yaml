@@ -1,0 +1,48 @@
+# https://render.com/docs/blueprint-spec
+databases:
+  - name: didi-portfolio-db
+    plan: free
+    region: singapore
+    databaseName: portfolio
+    user: portfolio
+
+services:
+  - type: web
+    name: didi-portfolio
+    runtime: docker
+    plan: free
+    region: singapore
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    healthCheckPath: /up
+    envVars:
+      - key: APP_ENV
+        value: production
+      - key: APP_DEBUG
+        value: "false"
+      - key: LOG_CHANNEL
+        value: stderr
+      - key: LOG_LEVEL
+        value: error
+      - key: DB_CONNECTION
+        value: pgsql
+      - key: DATABASE_URL
+        fromDatabase:
+          name: didi-portfolio-db
+          property: connectionString
+      - key: DB_URL
+        fromDatabase:
+          name: didi-portfolio-db
+          property: connectionString
+      - key: SESSION_DRIVER
+        value: database
+      - key: CACHE_STORE
+        value: database
+      - key: QUEUE_CONNECTION
+        value: database
+      - key: APP_KEY
+        sync: false
+      - key: ADMIN_EMAIL
+        value: mirzarusyaidi891@gmail.com
+      - key: ADMIN_PASSWORD
+        sync: false

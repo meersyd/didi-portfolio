@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 12" role="img" aria-label="D">
+  <style>
+    .bg { fill: #F0F2EE; }
+    .d { fill: #1B1F1C; }
+    .shadow { fill: #2db8d6; }
+    @media (prefers-color-scheme: dark) {
+      .bg { fill: #121413; }
+      .d { fill: #EEF1ED; }
+      .shadow { fill: #5ecce3; }
+    }
+  </style>
+  <rect class="bg" width="12" height="12"/>
+  <g class="shadow" shape-rendering="crispEdges">
+    <rect x="3" y="3" width="5" height="1"/>
+    <rect x="3" y="4" width="2" height="5"/>
+    <rect x="3" y="9" width="5" height="1"/>
+    <rect x="7" y="4" width="2" height="1"/>
+    <rect x="8" y="5" width="2" height="3"/>
+    <rect x="7" y="8" width="2" height="1"/>
+  </g>
+  <g class="d" shape-rendering="crispEdges">
+    <rect x="2" y="2" width="5" height="1"/>
+    <rect x="2" y="3" width="2" height="5"/>
+    <rect x="2" y="8" width="5" height="1"/>
+    <rect x="6" y="3" width="2" height="1"/>
+    <rect x="7" y="4" width="2" height="3"/>
+    <rect x="6" y="7" width="2" height="1"/>
+  </g>
+</svg>
