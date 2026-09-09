@@ -113,6 +113,7 @@
                                     <div class="work-hero-meta">
                                         <p class="label-meta">Quest {{ str_pad((string) ($slideIndex + 1), 2, '0', STR_PAD_LEFT) }} / {{ str_pad((string) $projects->count(), 2, '0', STR_PAD_LEFT) }}</p>
                                         <h3 class="mt-2 text-3xl font-extrabold uppercase sm:text-5xl">{{ $project->title }}</h3>
+                                        <x-offline-note :project="$project" compact />
                                         @if (filled($project->short_description))
                                             <p class="mt-3 max-w-xl text-sm leading-relaxed sm:text-base">{{ $project->short_description }}</p>
                                         @endif

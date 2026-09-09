@@ -391,6 +391,10 @@
         color: var(--subtle);
     }
 
+    .work-hero .project-offline-flag {
+        color: #f7f3e8;
+    }
+
     .project-video {
         position: relative;
         width: 100%;
