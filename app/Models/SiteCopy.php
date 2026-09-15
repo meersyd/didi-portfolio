@@ -107,11 +107,13 @@ class SiteCopy extends Model
 
     public function resumeDiskPath(): ?string
     {
-        if (blank($this->resume_path) || ! Storage::disk('local')->exists($this->resume_path)) {
-            return null;
+        if (filled($this->resume_path) && Storage::disk('local')->exists($this->resume_path)) {
+            return Storage::disk('local')->path($this->resume_path);
         }
 
-        return Storage::disk('local')->path($this->resume_path);
+        $public = public_path('resume.pdf');
+
+        return is_file($public) ? $public : null;
     }
 
     public function resumeDownloadName(): string
@@ -119,5 +121,28 @@ class SiteCopy extends Model
         $name = trim($this->first_name.' '.$this->last_name);
 
         return Str::slug($name !== '' ? $name : 'resume').'-resume.pdf';
+    }
+
+    /**
+     * Keep the durable public/resume.pdf mirrored into private storage
+     * so deploys and wipes do not silently drop the download.
+     */
+    public static function syncResumeFromPublic(): void
+    {
+        $public = public_path('resume.pdf');
+
+        if (! is_file($public)) {
+            return;
+        }
+
+        if (! Storage::disk('local')->exists('resumes/resume.pdf')) {
+            Storage::disk('local')->put('resumes/resume.pdf', file_get_contents($public));
+        }
+
+        $copy = static::query()->first();
+
+        if ($copy && blank($copy->resume_path)) {
+            $copy->forceFill(['resume_path' => 'resumes/resume.pdf'])->save();
+        }
     }
 }

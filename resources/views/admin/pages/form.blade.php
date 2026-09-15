@@ -97,15 +97,16 @@
                 </p>
                 <label class="flex items-center gap-2 text-sm">
                     <input type="checkbox" name="remove_resume" value="1">
-                    Remove current resume
+                    Remove uploaded resume
                 </label>
+                <p class="text-xs text-muted">If <code>public/resume.pdf</code> exists, the site still uses that as a fallback after remove.</p>
             @else
-                <p class="text-sm text-subtle">No resume uploaded yet. The download button stays hidden on the site until you add one.</p>
+                <p class="text-sm text-subtle">No resume found. Add <code>public/resume.pdf</code> or upload a PDF below.</p>
             @endif
             <label class="grid gap-2 text-sm">
                 <span class="label-meta">PDF file</span>
                 <input class="field" type="file" name="resume" accept="application/pdf">
-                <span class="text-xs text-muted">PDF only, up to 10 MB. Uploading a new file replaces the current one.</span>
+                <span class="text-xs text-muted">PDF only, up to 10 MB. Prefer keeping a copy at <code>public/resume.pdf</code> so deploys never lose it.</span>
             </label>
         </div>
 

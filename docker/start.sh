@@ -31,6 +31,15 @@ php artisan route:cache --no-interaction
 php artisan view:cache --no-interaction
 php artisan migrate --force --no-interaction
 
+php -d display_errors=0 -r '
+require "/var/www/html/vendor/autoload.php";
+$app = require "/var/www/html/bootstrap/app.php";
+$app->make(Illuminate\Contracts\Console\Kernel::class)->bootstrap();
+if (class_exists(App\Models\SiteCopy::class)) {
+    App\Models\SiteCopy::syncResumeFromPublic();
+}
+' || true
+
 set +e
 php -d display_errors=0 -r '
 require "/var/www/html/vendor/autoload.php";

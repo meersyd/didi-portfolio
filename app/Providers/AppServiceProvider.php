@@ -25,6 +25,10 @@ class AppServiceProvider extends ServiceProvider
             URL::forceScheme('https');
         }
 
+        if (Schema::hasTable('site_copies')) {
+            SiteCopy::syncResumeFromPublic();
+        }
+
         View::composer('*', function ($view): void {
             $site = config('portfolio');
 
@@ -32,6 +36,10 @@ class AppServiceProvider extends ServiceProvider
                 $copy = SiteCopy::current();
                 $site = array_replace_recursive($site, $copy->toSiteArray());
                 $site['resume'] = $copy->hasResume() ? route('resume') : null;
+            } elseif (is_file(public_path('resume.pdf'))) {
+                $site['resume'] = asset('resume.pdf');
+            } else {
+                $site['resume'] = null;
             }
 
             $view->with('site', $site);

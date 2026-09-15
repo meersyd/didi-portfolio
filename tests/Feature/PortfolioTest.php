@@ -244,19 +244,51 @@ class PortfolioTest extends TestCase
         Storage::disk('local')->put('resumes/resume.pdf', 'pdf');
         $copy->update(['resume_path' => 'resumes/resume.pdf']);
 
-        $this->actingAs($user)
-            ->put(route('admin.pages.update'), [
-                'first_name' => 'Mirza',
-                'last_name' => 'Rusyaidi',
-                'remove_resume' => '1',
-            ])
-            ->assertRedirect(route('admin.pages.edit'));
+        $public = public_path('resume.pdf');
+        $publicBackup = null;
 
-        Storage::disk('local')->assertMissing('resumes/resume.pdf');
-        $this->assertDatabaseHas('site_copies', ['resume_path' => null]);
+        if (is_file($public)) {
+            $publicBackup = $public.'.bak-test';
+            rename($public, $publicBackup);
+        }
 
-        $this->get('/')->assertOk()->assertDontSee('Download resume');
-        $this->get(route('resume'))->assertNotFound();
+        try {
+            $this->actingAs($user)
+                ->put(route('admin.pages.update'), [
+                    'first_name' => 'Mirza',
+                    'last_name' => 'Rusyaidi',
+                    'remove_resume' => '1',
+                ])
+                ->assertRedirect(route('admin.pages.edit'));
+
+            Storage::disk('local')->assertMissing('resumes/resume.pdf');
+            $this->assertDatabaseHas('site_copies', ['resume_path' => null]);
+
+            $this->get('/')->assertOk()->assertDontSee('Download resume');
+            $this->get(route('resume'))->assertNotFound();
+        } finally {
+            if ($publicBackup !== null && is_file($publicBackup)) {
+                rename($publicBackup, $public);
+            }
+        }
+    }
+
+    public function test_public_resume_pdf_is_served_as_fallback(): void
+    {
+        Storage::fake('local');
+        SiteCopy::current()->update(['resume_path' => null]);
+
+        $public = public_path('resume.pdf');
+        $this->assertFileExists($public);
+
+        $this->get('/')
+            ->assertOk()
+            ->assertSee('Download resume')
+            ->assertSee(route('resume'), false);
+
+        $this->get(route('resume'))
+            ->assertOk()
+            ->assertHeader('content-type', 'application/pdf');
     }
 
     public function test_empty_project_fields_are_hidden_on_the_public_page(): void
