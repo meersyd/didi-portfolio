@@ -235,6 +235,7 @@ class PortfolioTest extends TestCase
             $copy = SiteCopy::current()->fresh();
             $this->assertSame('resumes/resume.pdf', $copy->resume_path);
             $this->assertTrue($copy->hasStoredResumePayload());
+            $this->assertSame(base64_encode($payload), $copy->resume_data);
 
             $this->get('/')
                 ->assertOk()

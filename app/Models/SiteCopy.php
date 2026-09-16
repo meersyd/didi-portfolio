@@ -137,13 +137,13 @@ class SiteCopy extends Model
      */
     public function storeResumePayload(string $binary): void
     {
-        Storage::disk('local')->put('resumes/resume.pdf', $binary);
-        $this->mirrorResumeToPublic($binary);
-
         $this->forceFill([
             'resume_path' => 'resumes/resume.pdf',
-            'resume_data' => $binary,
+            'resume_data' => base64_encode($binary),
         ])->save();
+
+        Storage::disk('local')->put('resumes/resume.pdf', $binary);
+        $this->mirrorResumeToPublic($binary);
     }
 
     public function clearStoredResume(): void
@@ -159,7 +159,7 @@ class SiteCopy extends Model
     }
 
     /**
-     * Rehydrate private + public files from the DB payload after deploys.
+     * Rehydrate private storage from the DB payload after deploys.
      */
     public function restoreResumeToDisk(): void
     {
@@ -217,7 +217,7 @@ class SiteCopy extends Model
         if ($copy && blank($copy->resume_data)) {
             $copy->forceFill([
                 'resume_path' => 'resumes/resume.pdf',
-                'resume_data' => $binary,
+                'resume_data' => base64_encode($binary),
             ])->save();
         } elseif ($copy && blank($copy->resume_path)) {
             $copy->forceFill([
@@ -249,17 +249,22 @@ class SiteCopy extends Model
     {
         $data = $this->resume_data;
 
-        if ($data === null) {
+        if (! is_string($data) || $data === '') {
             return null;
         }
 
-        if (is_resource($data)) {
-            $contents = stream_get_contents($data);
+        $decoded = base64_decode($data, true);
 
-            return $contents === false ? null : $contents;
+        if ($decoded !== false && $decoded !== '') {
+            return $decoded;
         }
 
-        return is_string($data) ? $data : null;
+        // Legacy rows may contain raw bytes from the earlier binary column attempt.
+        if (str_starts_with($data, '%PDF')) {
+            return $data;
+        }
+
+        return null;
     }
 
     protected function mirrorResumeToPublic(string $binary): void
@@ -267,10 +272,19 @@ class SiteCopy extends Model
         $public = public_path('resume.pdf');
         $directory = dirname($public);
 
-        if (! is_dir($directory)) {
-            mkdir($directory, 0755, true);
-        }
+        try {
+            if (! is_dir($directory)) {
+                mkdir($directory, 0755, true);
+            }
 
-        file_put_contents($public, $binary);
+            // public/ is read-only on the Render Docker image; ignore failures.
+            if (! is_writable($directory) && ! (is_file($public) && is_writable($public))) {
+                return;
+            }
+
+            file_put_contents($public, $binary);
+        } catch (\Throwable) {
+            // Private storage + DB payload are enough for downloads.
+        }
     }
 }
