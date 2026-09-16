@@ -90,23 +90,31 @@
 
         <p class="label-meta pt-6">Resume</p>
         <div class="grid gap-3">
+            @php
+                $resumeBytes = $copy->resumeContents();
+                $resumeKb = is_string($resumeBytes) ? number_format(strlen($resumeBytes) / 1024, 1) : null;
+            @endphp
             @if ($copy->hasResume())
                 <p class="text-sm text-subtle">
-                    Current file:
-                    <a href="{{ route('resume') }}" class="text-ink underline underline-offset-2">Download</a>
+                    Current portfolio resume:
+                    <a href="{{ route('resume') }}?t={{ now()->timestamp }}" class="text-ink underline underline-offset-2">Download</a>
+                    · {{ $copy->hasStoredResumePayload() ? 'admin upload' : 'bundled fallback' }}
+                    @if ($resumeKb)
+                        · {{ $resumeKb }} KB
+                    @endif
                 </p>
                 <label class="flex items-center gap-2 text-sm">
                     <input type="checkbox" name="remove_resume" value="1">
                     Remove uploaded resume
                 </label>
-                <p class="text-xs text-muted">Removing clears the admin-uploaded resume. If <code>public/resume.pdf</code> still exists in the deploy, that file remains as a last-resort fallback.</p>
+                <p class="text-xs text-muted">Removing clears the admin-uploaded resume and falls back to the bundled PDF in the deploy, if present.</p>
             @else
                 <p class="text-sm text-subtle">No resume found. Upload a PDF below — it updates the portfolio download immediately.</p>
             @endif
             <label class="grid gap-2 text-sm">
                 <span class="label-meta">PDF file</span>
                 <input class="field" type="file" name="resume" accept="application/pdf">
-                <span class="text-xs text-muted">PDF only, up to 10 MB. Uploading replaces the portfolio resume right away and keeps it after redeploys.</span>
+                <span class="text-xs text-muted">PDF only, up to 10 MB. Choose the file, then click Save. The portfolio Download resume button serves this upload.</span>
             </label>
         </div>
 

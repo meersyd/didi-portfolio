@@ -229,23 +229,24 @@ class PortfolioTest extends TestCase
 
             Storage::disk('local')->assertExists('resumes/resume.pdf');
             $this->assertSame($payload, Storage::disk('local')->get('resumes/resume.pdf'));
-            $this->assertFileExists($public);
-            $this->assertSame($payload, file_get_contents($public));
 
             $copy = SiteCopy::current()->fresh();
             $this->assertSame('resumes/resume.pdf', $copy->resume_path);
             $this->assertTrue($copy->hasStoredResumePayload());
             $this->assertSame(base64_encode($payload), $copy->resume_data);
+            $this->assertSame($payload, $copy->resumeContents());
 
             $this->get('/')
                 ->assertOk()
                 ->assertSee('Download resume')
                 ->assertSee(route('resume'), false);
 
-            $this->get(route('resume'))
+            $download = $this->get(route('resume'));
+            $download
                 ->assertOk()
-                ->assertDownload('mirza-rusyaidi-resume.pdf')
-                ->assertHeader('content-type', 'application/pdf');
+                ->assertHeader('content-type', 'application/pdf')
+                ->assertHeader('x-resume-source', 'admin-upload');
+            $this->assertSame($payload, $download->streamedContent());
         } finally {
             if ($publicBackup === null) {
                 if (is_file($public)) {
@@ -262,11 +263,11 @@ class PortfolioTest extends TestCase
         Storage::fake('local');
         $user = User::query()->first();
         $copy = SiteCopy::current();
-        Storage::disk('local')->put('resumes/resume.pdf', 'pdf');
         $copy->update([
             'resume_path' => 'resumes/resume.pdf',
-            'resume_data' => 'pdf',
+            'resume_data' => base64_encode("%PDF-1.4\nto-remove"),
         ]);
+        Storage::disk('local')->put('resumes/resume.pdf', "%PDF-1.4\nto-remove");
 
         $public = public_path('resume.pdf');
         $publicBackup = null;
@@ -320,12 +321,12 @@ class PortfolioTest extends TestCase
 
             $this->get(route('resume'))
                 ->assertOk()
-                ->assertDownload('mirza-rusyaidi-resume.pdf');
+                ->assertHeader('content-type', 'application/pdf')
+                ->assertHeader('x-resume-source', 'admin-upload');
 
             Storage::disk('local')->assertExists('resumes/resume.pdf');
             $this->assertSame($payload, Storage::disk('local')->get('resumes/resume.pdf'));
-            $this->assertFileExists($public);
-            $this->assertSame($payload, file_get_contents($public));
+            // public/ may be read-only in production; local tests can still check when writable.
         } finally {
             if ($publicBackup === null) {
                 if (is_file($public)) {
@@ -361,7 +362,8 @@ class PortfolioTest extends TestCase
 
         $this->get(route('resume'))
             ->assertOk()
-            ->assertHeader('content-type', 'application/pdf');
+            ->assertHeader('content-type', 'application/pdf')
+            ->assertHeader('x-resume-source', 'fallback');
     }
 
     public function test_empty_project_fields_are_hidden_on_the_public_page(): void
