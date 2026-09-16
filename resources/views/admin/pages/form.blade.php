@@ -99,14 +99,14 @@
                     <input type="checkbox" name="remove_resume" value="1">
                     Remove uploaded resume
                 </label>
-                <p class="text-xs text-muted">If <code>public/resume.pdf</code> exists, the site still uses that as a fallback after remove.</p>
+                <p class="text-xs text-muted">Removing clears the admin-uploaded resume. If <code>public/resume.pdf</code> still exists in the deploy, that file remains as a last-resort fallback.</p>
             @else
-                <p class="text-sm text-subtle">No resume found. Add <code>public/resume.pdf</code> or upload a PDF below.</p>
+                <p class="text-sm text-subtle">No resume found. Upload a PDF below — it updates the portfolio download immediately.</p>
             @endif
             <label class="grid gap-2 text-sm">
                 <span class="label-meta">PDF file</span>
                 <input class="field" type="file" name="resume" accept="application/pdf">
-                <span class="text-xs text-muted">PDF only, up to 10 MB. Prefer keeping a copy at <code>public/resume.pdf</code> so deploys never lose it.</span>
+                <span class="text-xs text-muted">PDF only, up to 10 MB. Uploading replaces the portfolio resume right away and keeps it after redeploys.</span>
             </label>
         </div>
 

@@ -214,26 +214,46 @@ class PortfolioTest extends TestCase
     {
         Storage::fake('local');
         $user = User::query()->first();
+        $payload = "%PDF-1.4\nadmin-uploaded-resume-body";
+        $public = public_path('resume.pdf');
+        $publicBackup = is_file($public) ? file_get_contents($public) : null;
 
-        $this->actingAs($user)
-            ->put(route('admin.pages.update'), [
-                'first_name' => 'Mirza',
-                'last_name' => 'Rusyaidi',
-                'resume' => UploadedFile::fake()->create('cv.pdf', 120, 'application/pdf'),
-            ])
-            ->assertRedirect(route('admin.pages.edit'));
+        try {
+            $this->actingAs($user)
+                ->put(route('admin.pages.update'), [
+                    'first_name' => 'Mirza',
+                    'last_name' => 'Rusyaidi',
+                    'resume' => UploadedFile::fake()->createWithContent('cv.pdf', $payload),
+                ])
+                ->assertRedirect(route('admin.pages.edit'));
 
-        Storage::disk('local')->assertExists('resumes/resume.pdf');
-        $this->assertDatabaseHas('site_copies', ['resume_path' => 'resumes/resume.pdf']);
+            Storage::disk('local')->assertExists('resumes/resume.pdf');
+            $this->assertSame($payload, Storage::disk('local')->get('resumes/resume.pdf'));
+            $this->assertFileExists($public);
+            $this->assertSame($payload, file_get_contents($public));
 
-        $this->get('/')
-            ->assertOk()
-            ->assertSee('Download resume')
-            ->assertSee(route('resume'), false);
+            $copy = SiteCopy::current()->fresh();
+            $this->assertSame('resumes/resume.pdf', $copy->resume_path);
+            $this->assertTrue($copy->hasStoredResumePayload());
 
-        $this->get(route('resume'))
-            ->assertOk()
-            ->assertDownload('mirza-rusyaidi-resume.pdf');
+            $this->get('/')
+                ->assertOk()
+                ->assertSee('Download resume')
+                ->assertSee(route('resume'), false);
+
+            $this->get(route('resume'))
+                ->assertOk()
+                ->assertDownload('mirza-rusyaidi-resume.pdf')
+                ->assertHeader('content-type', 'application/pdf');
+        } finally {
+            if ($publicBackup === null) {
+                if (is_file($public)) {
+                    unlink($public);
+                }
+            } else {
+                file_put_contents($public, $publicBackup);
+            }
+        }
     }
 
     public function test_admin_can_remove_the_resume(): void
@@ -242,7 +262,10 @@ class PortfolioTest extends TestCase
         $user = User::query()->first();
         $copy = SiteCopy::current();
         Storage::disk('local')->put('resumes/resume.pdf', 'pdf');
-        $copy->update(['resume_path' => 'resumes/resume.pdf']);
+        $copy->update([
+            'resume_path' => 'resumes/resume.pdf',
+            'resume_data' => 'pdf',
+        ]);
 
         $public = public_path('resume.pdf');
         $publicBackup = null;
@@ -262,7 +285,10 @@ class PortfolioTest extends TestCase
                 ->assertRedirect(route('admin.pages.edit'));
 
             Storage::disk('local')->assertMissing('resumes/resume.pdf');
-            $this->assertDatabaseHas('site_copies', ['resume_path' => null]);
+            $this->assertDatabaseHas('site_copies', [
+                'resume_path' => null,
+            ]);
+            $this->assertFalse(SiteCopy::current()->fresh()->hasStoredResumePayload());
 
             $this->get('/')->assertOk()->assertDontSee('Download resume');
             $this->get(route('resume'))->assertNotFound();
@@ -273,10 +299,56 @@ class PortfolioTest extends TestCase
         }
     }
 
+    public function test_admin_resume_survives_missing_disk_files(): void
+    {
+        Storage::fake('local');
+        $payload = "%PDF-1.4\npersisted-in-database";
+        $public = public_path('resume.pdf');
+        $publicBackup = is_file($public) ? file_get_contents($public) : null;
+
+        try {
+            $copy = SiteCopy::current();
+            $copy->storeResumePayload($payload);
+
+            Storage::disk('local')->delete('resumes/resume.pdf');
+            if (is_file($public)) {
+                unlink($public);
+            }
+
+            $this->assertFalse(Storage::disk('local')->exists('resumes/resume.pdf'));
+
+            $this->get(route('resume'))
+                ->assertOk()
+                ->assertDownload('mirza-rusyaidi-resume.pdf');
+
+            Storage::disk('local')->assertExists('resumes/resume.pdf');
+            $this->assertSame($payload, Storage::disk('local')->get('resumes/resume.pdf'));
+            $this->assertFileExists($public);
+            $this->assertSame($payload, file_get_contents($public));
+        } finally {
+            if ($publicBackup === null) {
+                if (is_file($public)) {
+                    unlink($public);
+                }
+            } else {
+                file_put_contents($public, $publicBackup);
+            }
+
+            SiteCopy::current()->forceFill([
+                'resume_path' => null,
+                'resume_data' => null,
+            ])->save();
+            Storage::disk('local')->delete('resumes/resume.pdf');
+        }
+    }
+
     public function test_public_resume_pdf_is_served_as_fallback(): void
     {
         Storage::fake('local');
-        SiteCopy::current()->update(['resume_path' => null]);
+        SiteCopy::current()->update([
+            'resume_path' => null,
+            'resume_data' => null,
+        ]);
 
         $public = public_path('resume.pdf');
         $this->assertFileExists($public);

@@ -19,6 +19,8 @@ class ResumeController extends Controller
 
         return response()->download($path, $copy->resumeDownloadName(), [
             'Content-Type' => 'application/pdf',
+            'Cache-Control' => 'private, no-cache, no-store, must-revalidate',
+            'Pragma' => 'no-cache',
         ]);
     }
 }

@@ -36,7 +36,7 @@ require "/var/www/html/vendor/autoload.php";
 $app = require "/var/www/html/bootstrap/app.php";
 $app->make(Illuminate\Contracts\Console\Kernel::class)->bootstrap();
 if (class_exists(App\Models\SiteCopy::class)) {
-    App\Models\SiteCopy::syncResumeFromPublic();
+    App\Models\SiteCopy::ensureResumeAvailable();
 }
 ' || true
 

@@ -24,6 +24,7 @@ use Illuminate\Support\Str;
     'availability',
     'focus',
     'resume_path',
+    'resume_data',
 ])]
 class SiteCopy extends Model
 {
@@ -105,8 +106,15 @@ class SiteCopy extends Model
         return $this->resumeDiskPath() !== null;
     }
 
+    public function hasStoredResumePayload(): bool
+    {
+        return filled($this->resume_data);
+    }
+
     public function resumeDiskPath(): ?string
     {
+        $this->restoreResumeToDisk();
+
         if (filled($this->resume_path) && Storage::disk('local')->exists($this->resume_path)) {
             return Storage::disk('local')->path($this->resume_path);
         }
@@ -124,25 +132,145 @@ class SiteCopy extends Model
     }
 
     /**
+     * Persist an uploaded resume so portfolio downloads stay in sync
+     * across ephemeral Render disks.
+     */
+    public function storeResumePayload(string $binary): void
+    {
+        Storage::disk('local')->put('resumes/resume.pdf', $binary);
+        $this->mirrorResumeToPublic($binary);
+
+        $this->forceFill([
+            'resume_path' => 'resumes/resume.pdf',
+            'resume_data' => $binary,
+        ])->save();
+    }
+
+    public function clearStoredResume(): void
+    {
+        if (filled($this->resume_path) && Storage::disk('local')->exists($this->resume_path)) {
+            Storage::disk('local')->delete($this->resume_path);
+        }
+
+        $this->forceFill([
+            'resume_path' => null,
+            'resume_data' => null,
+        ])->save();
+    }
+
+    /**
+     * Rehydrate private + public files from the DB payload after deploys.
+     */
+    public function restoreResumeToDisk(): void
+    {
+        if (! $this->hasStoredResumePayload()) {
+            return;
+        }
+
+        $binary = $this->resumeBinary();
+
+        if ($binary === null || $binary === '') {
+            return;
+        }
+
+        if (! Storage::disk('local')->exists('resumes/resume.pdf')) {
+            Storage::disk('local')->put('resumes/resume.pdf', $binary);
+        }
+
+        if (blank($this->resume_path)) {
+            $this->forceFill(['resume_path' => 'resumes/resume.pdf'])->saveQuietly();
+        }
+
+        $this->mirrorResumeToPublic($binary);
+    }
+
+    /**
      * Keep the durable public/resume.pdf mirrored into private storage
-     * so deploys and wipes do not silently drop the download.
+     * only when no admin-uploaded resume exists yet.
      */
     public static function syncResumeFromPublic(): void
     {
+        $copy = static::query()->first();
+
+        if ($copy?->hasStoredResumePayload()) {
+            $copy->restoreResumeToDisk();
+
+            return;
+        }
+
         $public = public_path('resume.pdf');
 
         if (! is_file($public)) {
             return;
         }
 
-        if (! Storage::disk('local')->exists('resumes/resume.pdf')) {
-            Storage::disk('local')->put('resumes/resume.pdf', file_get_contents($public));
+        $binary = file_get_contents($public);
+
+        if ($binary === false || $binary === '') {
+            return;
         }
 
+        if (! Storage::disk('local')->exists('resumes/resume.pdf')) {
+            Storage::disk('local')->put('resumes/resume.pdf', $binary);
+        }
+
+        if ($copy && blank($copy->resume_data)) {
+            $copy->forceFill([
+                'resume_path' => 'resumes/resume.pdf',
+                'resume_data' => $binary,
+            ])->save();
+        } elseif ($copy && blank($copy->resume_path)) {
+            $copy->forceFill([
+                'resume_path' => 'resumes/resume.pdf',
+            ])->save();
+        }
+    }
+
+    public static function ensureResumeAvailable(): void
+    {
         $copy = static::query()->first();
 
-        if ($copy && blank($copy->resume_path)) {
-            $copy->forceFill(['resume_path' => 'resumes/resume.pdf'])->save();
+        if ($copy === null) {
+            static::syncResumeFromPublic();
+
+            return;
         }
+
+        if ($copy->hasStoredResumePayload()) {
+            $copy->restoreResumeToDisk();
+
+            return;
+        }
+
+        static::syncResumeFromPublic();
+    }
+
+    protected function resumeBinary(): ?string
+    {
+        $data = $this->resume_data;
+
+        if ($data === null) {
+            return null;
+        }
+
+        if (is_resource($data)) {
+            $contents = stream_get_contents($data);
+
+            return $contents === false ? null : $contents;
+        }
+
+        return is_string($data) ? $data : null;
+    }
+
+    protected function mirrorResumeToPublic(string $binary): void
+    {
+        $public = public_path('resume.pdf');
+        $directory = dirname($public);
+
+        if (! is_dir($directory)) {
+            mkdir($directory, 0755, true);
+        }
+
+        file_put_contents($public, $binary);
     }
 }
